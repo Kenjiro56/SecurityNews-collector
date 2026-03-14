@@ -1,34 +1,112 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/google/generative-ai-go/genai"
+	"github.com/joho/godotenv"
 	"github.com/mmcdole/gofeed"
 	"google.golang.org/api/option"
 )
 
+// SlackPayload はSlackに送るJSONの構造体
+type SlackPayload struct {
+	Text string `json:"text"`
+}
+
+func sendToSlack(webhookURL string, message string) error {
+	payload := SlackPayload{Text: message}
+	payloadBytes, _ := json.Marshal(payload)
+
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Slackへの送信に失敗しました: %s", resp.Status)
+	}
+	return nil
+}
+
 func main() {
-	// 1. RSSフィードの取得 (例: BleepingComputer)
-	fp := gofeed.NewParser()
-	feed, _ := fp.ParseURL("https://www.bleepingcomputer.com/feed/")
+	_ = godotenv.Load() // ローカル開発用
 
-	// 最新の1件だけ処理（テスト用）
-	item := feed.Items[0]
+	// 1. 判定基準となる時間を設定 (24時間前)
+	// 本番では前回の実行時間をファイルから読み込むのが理想ですが、
+	// 毎日8時実行なら「現在から24時間以内」というロジックがシンプルです。
+	now := time.Now()
+	threshold := now.Add(-24 * time.Hour)
 
-	// 2. Gemini APIで要約・翻訳
+	feeds := []string{
+		"https://thehackernews.com/feeds/posts/default",
+		"https://www.bleepingcomputer.com/feed/",
+	}
+
 	ctx := context.Background()
 	client, _ := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GEMINI_API_KEY")))
-	model := client.GenerativeModel("gemini-1.5-flash")
+	defer client.Close()
+	model := client.GenerativeModel("gemini-3-flash-preview")
 
-	prompt := fmt.Sprintf("以下のセキュリティニュースを日本語に翻訳してください:\nTitle: %s\nContent: %s", item.Title, item.Description)
-	resp, _ := model.GenerateContent(ctx, genai.Text(prompt))
+	fp := gofeed.NewParser()
 
-	// 3. Slackへ送信 (ここは標準のhttp.PostでOK)
-	summary := fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0])
-	fmt.Printf("【翻訳結果】\n%s\n", summary)
+	for _, url := range feeds {
+		feed, err := fp.ParseURL(url)
+		if err != nil {
+			log.Printf("Feed取得失敗: %v", err)
+			continue
+		}
 
-	// TODO: Slack通知関数の呼び出し
+		for _, item := range feed.Items {
+			// 記事の公開日時が24時間以内か判定
+			if item.PublishedParsed != nil && item.PublishedParsed.After(threshold) {
+
+				// 2. Geminiで翻訳
+				prompt := fmt.Sprintf(
+					"以下のセキュリティ記事のタイトルと概要を日本語に翻訳してください。出力は『タイトル: 翻訳結果\n概要: 翻訳結果』の形式にしてください。\n\nTitle: %s\nDescription: %s",
+					item.Title, item.Description,
+				)
+
+				resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+				if err != nil {
+					log.Printf("翻訳失敗: %v", err)
+					continue
+				}
+
+				translatedText := fmt.Sprintf("%v", resp.Candidates[0].Content.Parts[0])
+
+				// 3. Slack投稿メッセージ作成
+				message := fmt.Sprintf(
+					"🛡 *Source: %s*\n%s\n🔗 <%s|記事を読む>",
+					feed.Title,
+					translatedText,
+					item.Link,
+				)
+
+				// // ここでSlack送信関数を呼ぶ (前述の http.Post ロジック)
+				// fmt.Println("--- Sending to Slack ---")
+				// fmt.Println(message)
+				webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
+				if webhookURL == "" {
+					fmt.Println("SLACK_WEBHOOK_URL が設定されていません。コンソール出力のみ行います。")
+					return
+				}
+				err = sendToSlack(webhookURL, message)
+				if err != nil {
+					fmt.Println("Slack送信エラー:", err)
+				} else {
+					fmt.Println("Slackにニュースを投稿しました！")
+				}
+
+			}
+		}
+	}
 }

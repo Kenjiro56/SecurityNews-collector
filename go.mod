@@ -4,6 +4,7 @@ go 1.25.5
 
 require (
 	github.com/google/generative-ai-go v0.20.1
+	github.com/joho/godotenv v1.5.1
 	github.com/mmcdole/gofeed v1.3.0
 	google.golang.org/api v0.271.0
 )
