@@ -1,0 +1,23 @@
+name: Security News Bot
+on:
+  schedule:
+    - cron: '0 23 * * *' # 日本時間 翌朝8:00 (UTC 23:00)
+  workflow_dispatch:      # 手動実行ボタンを有効化（テストに便利！）
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run Bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: go run main.go
