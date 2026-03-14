@@ -1,0 +1,33 @@
+# --- Binary & Build Artifacts ---
+# Goが生成する実行ファイル（Windows用 .exe も含む）
+bin/
+security-bot
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# --- Dependency Management ---
+# go.sumは通常コミットしますが、ベンダリングを利用する場合のみここを調整します
+# vendor/
+
+# --- Environment Variables (CRITICAL) ---
+# APIキーやWebhook URLを記述するローカル用設定ファイル
+# これをコミットするとGitHub上で全世界に公開されてしまうので注意！
+.env
+.env.local
+.env.*.local
+
+# --- IDE & Editor Config ---
+# 開発ツール固有の設定ファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- GitHub Actions / Local Testing ---
+# 実行ログや一時的なキャッシュ
+*.log
+last_run.txt
