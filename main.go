@@ -15,7 +15,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-// TargetArticle は翻訳対象の記事データを保持する構造体
+// 翻訳対象の記事データを保持する構造体
 type TargetArticle struct {
 	Source string
 	Title  string
@@ -23,7 +23,7 @@ type TargetArticle struct {
 	Link   string
 }
 
-// SlackPayload はSlack Webhook用の構造体
+// Slack Webhook用の構造体
 type SlackPayload struct {
 	Text        string `json:"text"`
 	UnfurlLinks bool   `json:"unfurl_links"`
