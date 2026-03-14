@@ -10,5 +10,5 @@
 
 ## 使用言語・ツール
 * **Language**: Go (Golang)
-* **LLM**: Gemini 1.5 Flash (Google AI SDK)
+* **LLM**: gemini-3-flash-preview (Google AI SDK)
 * **CI/CD**: GitHub Actions
