@@ -100,7 +100,7 @@ func translateArticlesBulk(articles []TargetArticle) (string, error) {
 	}
 	defer client.Close()
 
-	model := client.GenerativeModel("gemini-3-flash-preview")
+	model := client.GenerativeModel("gemini-2.5-flash")
 
 	// プロンプトの組み立て
 	var bulkText string
@@ -115,7 +115,11 @@ func translateArticlesBulk(articles []TargetArticle) (string, error) {
 	- 「翻訳しました」や「どうぞ」などの前置きや挨拶、説明文は一切含めないでください。
 	- 各記事の最後に必ず元のLinkを添えてください。
 	- タイトルは太字にしてください。
-	- リンクは必ず <URL|タイトル> の形式にしてください（例: <https://example.com|タイトル>）。
+	- Slackの特殊記法（mrkdwn）を使用してください：
+	* 太字はアスタリスク1つで囲む（例: *タイトル*）
+	* リンクは必ず <URL|タイトル> の形式にしてください（例: <https://example.com|タイトル>）。
+	- 記事と記事の間には1行空行を入れてください。
+	- 記事タイトルの前に通番をつけてください。（例: [1] 記事タイトル1, [2] 記事タイトル2, ...）
 
 	### 翻訳対象:
 %s`, bulkText)
