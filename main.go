@@ -114,8 +114,8 @@ func translateArticlesBulk(articles []TargetArticle) (string, error) {
 	- 出力は翻訳結果のみとしてください。
 	- 「翻訳しました」や「どうぞ」などの前置きや挨拶、説明文は一切含めないでください。
 	- 各記事の最後に必ず元のLinkを添えてください。
-	- タイトルは太字(*タイトル*)にしてください。
-	- リンクは必ず <URL|タイトル> の形式にしてください（例: <https://example.com|*タイトル*>）。
+	- タイトルは太字にしてください。
+	- リンクは必ず <URL|タイトル> の形式にしてください（例: <https://example.com|タイトル>）。
 
 	### 翻訳対象:
 %s`, bulkText)
