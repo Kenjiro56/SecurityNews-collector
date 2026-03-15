@@ -108,7 +108,7 @@ func translateArticlesBulk(articles []TargetArticle) (string, error) {
 		bulkText += fmt.Sprintf("[%d] Source: %s\nTitle: %s\nContent: %s\nLink: %s\n\n", i+1, a.Source, a.Title, a.Desc, a.Link)
 	}
 
-	prompt := "以下のセキュリティニュースを日本語に翻訳してください。各記事の最後に必ず元のLinkを添えてください。Slackで読みやすいように、タイトルは太字(*タイトル*)にしてください。OGP展開を防ぐため、URLは<>で囲まないでください。\n\n" + bulkText
+	prompt := "以下のセキュリティニュースを日本語に翻訳してください。各記事の最後に必ず元のLinkを添えてください。Slackで読みやすいように、タイトルは太字(*タイトル*)にしてください。\n\n" + bulkText
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
