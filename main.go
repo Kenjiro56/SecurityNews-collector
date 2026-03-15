@@ -116,7 +116,7 @@ func translateArticlesBulk(articles []TargetArticle) (string, error) {
 	}
 
 	return fmt.Sprintf("📢 *本日の海外セキュリティニュース (%s)*\n\n%v",
-		time.Now().Format("2006/01/02"),
+		time.Now().AddDate(0, 0, 1).Format("2006/01/02"),
 		resp.Candidates[0].Content.Parts[0]), nil
 }
 
